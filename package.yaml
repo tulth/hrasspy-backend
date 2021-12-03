@@ -40,13 +40,14 @@ executables:
   hrasspy-backend-exe:
     main:                Main.hs
     source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - hrasspy-backend
 
 ghc-options:
-- -threaded
-- -rtsopts
-- -with-rtsopts=-N
 - -Wall
 - -Wcompat
 - -Wcpp-undef
@@ -62,5 +63,9 @@ tests:
   hrasspy-backend-test:
     main:                Spec.hs
     source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - hrasspy-backend
