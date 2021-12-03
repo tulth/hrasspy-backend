@@ -29,7 +29,7 @@ import Data.Proxy (Proxy(Proxy))
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BLC
 import qualified Data.ByteString.Char8 as BC
-import Control.Monad.Trans.Except ( withExceptT, runExceptT, ExceptT(..) )
+import Control.Monad.Trans.Except ( withExceptT, ExceptT(..) )
 import Network.HTTP.Simple
   ( Request
   , defaultRequest
@@ -134,7 +134,7 @@ instance ToJSON ResponseToSpeak where
   toJSON (ResponseToSpeak a) = object ["speech" .= object [ "text" .= toJSON a] ]
 
 intentApiHandler :: Intent -> Handler ResponseToSpeak
-intentApiHandler arg = do
+intentApiHandler _ = do
   liftIO $ putStrLn "here!"
   return $ ResponseToSpeak "I'm not smart enough yet"
 
