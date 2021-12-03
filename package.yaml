@@ -24,6 +24,7 @@ dependencies:
 - servant-server
 - warp
 - wai-logger
+- wai-extra
 - bytestring
 - transformers
 - mtl

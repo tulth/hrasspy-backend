@@ -21,6 +21,7 @@ import Servant
       err404,
       Handler(Handler),type  (:<|>) ((:<|>)), Post, PlainText, ReqBody, MimeRender (mimeRender), Accept (contentType) )
 import Network.Wai.Logger ( withStdoutLogger )
+import Network.Wai.Middleware.RequestLogger ( logStdoutDev )
 import Network.Wai.Handler.Warp
     ( setLogger, setPort, runSettings, defaultSettings )
 import Servant.Server (Server, ServerError)
@@ -59,7 +60,7 @@ startApp = do
         runSettings settings app
 
 app :: Application
-app = serve api server
+app = logStdoutDev $ serve api server
 
 api :: Proxy API
 api = Proxy
@@ -68,7 +69,7 @@ server :: Server API
 server = statusHandler
     :<|> ttsApiHandler
   where statusHandler :: Handler String
-        statusHandler = return "up\n"
+        statusHandler = return "up"
 
 ttsApiHandler :: TextToConvert -> Handler WavData
 ttsApiHandler arg = do
