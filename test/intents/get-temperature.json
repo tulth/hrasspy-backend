@@ -1,0 +1,23 @@
+{
+    "entities": [],
+    "intent": {
+        "confidence": 1,
+        "name": "GetTemperature"
+    },
+    "raw_text": "whats the temperature",
+    "raw_tokens": [
+        "whats",
+        "the",
+        "temperature"
+    ],
+    "recognize_seconds": 0.06987720800680108,
+    "slots": {},
+    "speech_confidence": 1,
+    "text": "whats the temperature",
+    "tokens": [
+        "whats",
+        "the",
+        "temperature"
+    ],
+    "wakeword_id": null
+}

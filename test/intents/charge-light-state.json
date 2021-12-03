@@ -1,0 +1,59 @@
+{
+    "entities": [
+        {
+            "end": 7,
+            "entity": "state",
+            "raw_end": 7,
+            "raw_start": 5,
+            "raw_value": "on",
+            "start": 5,
+            "value": "on",
+            "value_details": {
+                "kind": "Unknown",
+                "value": "on"
+            }
+        },
+        {
+            "end": 28,
+            "entity": "name",
+            "raw_end": 28,
+            "raw_start": 12,
+            "raw_value": "living room lamp",
+            "start": 12,
+            "value": "living room lamp",
+            "value_details": {
+                "kind": "Unknown",
+                "value": "living room lamp"
+            }
+        }
+    ],
+    "intent": {
+        "confidence": 1,
+        "name": "ChangeLightState"
+    },
+    "raw_text": "turn on the living room lamp",
+    "raw_tokens": [
+        "turn",
+        "on",
+        "the",
+        "living",
+        "room",
+        "lamp"
+    ],
+    "recognize_seconds": 0.09816334000788629,
+    "slots": {
+        "name": "living room lamp",
+        "state": "on"
+    },
+    "speech_confidence": 1,
+    "text": "turn on the living room lamp",
+    "tokens": [
+        "turn",
+        "on",
+        "the",
+        "living",
+        "room",
+        "lamp"
+    ],
+    "wakeword_id": null
+}

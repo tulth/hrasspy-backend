@@ -49,8 +49,11 @@ import Control.Exception (Exception, try)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Except ( liftEither )
 import qualified Network.HTTP.Media as M
+import Data.Aeson ( object, ToJSON(..), (.=) )
+import Data.Aeson.Types (Object)
 
 type API = "status" :> Get '[JSON] String
+      :<|> "api" :> "intent" :> ReqBody '[JSON] Intent :> Post '[JSON] ResponseToSpeak
       :<|> "api" :> "text-to-speech" :> ReqBody '[PlainText] TextToConvert :> Post '[Wav] WavData
 
 startApp :: IO ()
@@ -67,6 +70,7 @@ api = Proxy
 
 server :: Server API
 server = statusHandler
+    :<|> intentApiHandler
     :<|> ttsApiHandler
   where statusHandler :: Handler String
         statusHandler = return "up"
@@ -122,3 +126,15 @@ buildRequest host method path isSecure port =
   $ setRequestSecure isSecure
   $ setRequestPort port
   defaultRequest
+
+type Intent = Object
+newtype ResponseToSpeak = ResponseToSpeak String
+
+instance ToJSON ResponseToSpeak where
+  toJSON (ResponseToSpeak a) = object ["speech" .= object [ "text" .= toJSON a] ]
+
+intentApiHandler :: Intent -> Handler ResponseToSpeak
+intentApiHandler arg = do
+  liftIO $ putStrLn "here!"
+  return $ ResponseToSpeak "I'm not smart enough yet"
+

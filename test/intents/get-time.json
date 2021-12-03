@@ -1,0 +1,28 @@
+{
+    "intent": {
+        "name": "GetTime",
+        "confidence": 1
+    },
+    "entities": [],
+    "slots": {},
+    "text": "what time is it",
+    "raw_text": "what time is it",
+    "tokens": [
+        "what",
+        "time",
+        "is",
+        "it"
+    ],
+    "raw_tokens": [
+        "what",
+        "time",
+        "is",
+        "it"
+    ],
+    "wakeword_id": null,
+    "siteId": "hifiberry",
+    "sessionId": "3704efa8-2f62-437f-8411-530cee1e9fe2",
+    "customData": null,
+    "wakewordId": null,
+    "lang": null
+}
