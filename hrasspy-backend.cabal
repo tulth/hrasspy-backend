@@ -39,6 +39,7 @@ library
     , http-media
     , mtl
     , servant-server
+    , text
     , transformers
     , wai-extra
     , wai-logger
@@ -62,6 +63,7 @@ executable hrasspy-backend-exe
     , http-media
     , mtl
     , servant-server
+    , text
     , transformers
     , wai-extra
     , wai-logger
@@ -87,6 +89,7 @@ test-suite hrasspy-backend-test
     , http-media
     , mtl
     , servant-server
+    , text
     , transformers
     , wai-extra
     , wai-logger

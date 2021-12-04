@@ -32,6 +32,7 @@ dependencies:
 - http-media
 - aeson
 - containers
+- text
 
 library:
   source-dirs: src
