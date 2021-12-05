@@ -36,7 +36,8 @@ instance ToJSON ResponseToSpeak where
   toJSON (ResponseToSpeak a) = object ["speech" .= object [ "text" .= toJSON a] ]
 
 intentApiHandler :: Intent -> Handler ResponseToSpeak
-intentApiHandler argIntent =
+intentApiHandler argIntent = do
+  liftIO $ print $ argIntent
   case argIntentName of
     "GetTime" -> doGetTime argIntent
     "ChangeLightState" -> changeLightState argIntent
@@ -137,6 +138,7 @@ homeTheaterActivityToItemName x
 
 openhabHttpActionIO :: String -> String -> IO Bool
 openhabHttpActionIO itemName itemState = do
+  print req
   either (const False)
     (const True)
     <$> httpActionIOE
