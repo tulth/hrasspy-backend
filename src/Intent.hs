@@ -1,44 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Intent
-    ( getIntent
-    , Intent(..)
-    , Slot(..)
+    ( Intent(..)
     ) where
 
-import Data.Aeson ( Object, (.:) )
-import Data.Aeson.Types ( parseMaybe )
+import Data.Aeson
+    ( (.:)
+    , withObject
+    , FromJSON(parseJSON) )
 import Data.Text ()
-import Data.Maybe (maybeToList)
+import Data.Map ( Map )
 
 data Intent = Intent
-  { intentName :: !String
-  , slots :: [Slot]
+  { intentName :: String
+  , slots :: Map String String
   } deriving ( Show, Eq )
 
-data Slot = Slot
-  { slotName :: !String
-  , slotState :: !String
-  } deriving ( Show, Eq )
-
-getIntent :: Object -> Maybe Intent
-getIntent decodedJson =
-  (`Intent` slts) <$> inom
-  where inom = getIntentName decodedJson
-        slts = getIntentSlot decodedJson
-        
-getIntentName :: Object -> Maybe String
-getIntentName decodedJson =
-  flip parseMaybe decodedJson $ \obj -> do
-    intent <- obj .: "intent"
-    intent .: "name"
-
-getIntentSlot :: Object -> [Slot]
-getIntentSlot decodedJson =
-  maybeToList slotMaybe
-  where slotMaybe = flip parseMaybe decodedJson $ \obj -> do
-          slts <- obj .: "slots"
-          slotN <- slts .: "name"
-          slotS <- slts .: "state"
-          return Slot {slotName=slotN, slotState=slotS}
-
+instance FromJSON Intent where
+    parseJSON = withObject "Intent" $ \obj -> do
+        int <- obj .: "intent"
+        intNom <- int .: "name"
+        slotsVal <- obj .: "slots"
+        return $ Intent intNom slotsVal

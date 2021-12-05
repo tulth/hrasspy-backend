@@ -5,50 +5,43 @@ module IntentJsonSpec ( testGetTimeIO
                       , testChangeLightStateIO
                       ) where
 
-import Data.Map ()
-import Data.Text ()
-import Data.List.Extra ( replace )
 import qualified Data.ByteString.Lazy as BL
 
-import Intent ( getIntent, Intent(..), Slot(..) )
-import Data.Aeson (Object, decode)
+import Data.Aeson ( decode )
+import Data.Map ( fromList, empty )
+import Data.List.Extra ( replace )
+import Data.Text ()
 
-readIntentFileNoSlots :: String -> IO (Maybe Intent)
-readIntentFileNoSlots intentN = do
-   getTime <- BL.readFile fileName
-   let objM = decode getTime :: Maybe Object
-   return $ getIntent =<< objM
-   where fileName = "test/intents/" ++ intentN ++ ".json"
+import Intent ( Intent(..) )
+
+readIntentFile :: String -> IO (Maybe Intent)
+readIntentFile fileName = do
+   decode <$> BL.readFile fileName
 
 testIntentNoSlotsIO :: String -> IO Bool
 testIntentNoSlotsIO intentN = do
-  actual <- readIntentFileNoSlots intentN
+  actual <- readIntentFile fileName
   return $ expect == actual
-  where expect = Just (Intent {intentName = intentN, slots = []})
-  
+  where expect = Just (Intent {intentName = intentN, slots = empty})
+        fileName = "test/intents/" ++ intentN ++ ".json"
+
 testGetTimeIO :: IO Bool
 testGetTimeIO = testIntentNoSlotsIO "GetTime"
 
 testGetTemperatureIO :: IO Bool
 testGetTemperatureIO = testIntentNoSlotsIO "GetTemperature"
-  
-readIntentFileWithOneSlot :: String -> String -> String -> IO (Maybe Intent)
-readIntentFileWithOneSlot intentN slotN slotS = do
-   getTime <- BL.readFile fileName
-   let objM = decode getTime :: Maybe Object
-   return $ getIntent =<< objM
-   where slotN' = replace " " "_" slotN
-         fileBaseName = intentN ++ "-" ++ slotN' ++ "-" ++ slotS
-         fileName = "test/intents/" ++ fileBaseName ++ ".json"
 
-testIntentWithOneSlotIO :: String -> String -> String -> IO Bool
-testIntentWithOneSlotIO intentN slotN slotS = do
-  actual <- readIntentFileWithOneSlot intentN slotN slotS
+testIntentWithNameStateIO :: String -> String -> String -> IO Bool
+testIntentWithNameStateIO intentN slotN slotS = do
+  actual <- readIntentFile fileName
   return $ expect == actual
-  where eSlot = Slot {slotName=slotN, slotState=slotS}
+  where eSlot = fromList [("name", slotN), ("state",slotS)]
+        slotN' = replace " " "_" slotN
         expect = Just (Intent {intentName = intentN,
-                               slots = [eSlot]})
+                               slots = eSlot})
+        fileBaseName = intentN ++ "-" ++ slotN' ++ "-" ++ slotS
+        fileName = "test/intents/" ++ fileBaseName ++ ".json"
 
-testChangeLightStateIO :: IO Bool                            
+testChangeLightStateIO :: IO Bool
 testChangeLightStateIO =
-  testIntentWithOneSlotIO "ChangeLightState" "corner lamp" "on"
+  testIntentWithNameStateIO "ChangeLightState" "corner lamp" "on"

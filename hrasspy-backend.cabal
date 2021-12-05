@@ -26,8 +26,11 @@ source-repository head
 library
   exposed-modules:
       GetSpokenTime
+      HttpRequest
       Intent
-      Lib
+      IntentHandlerApi
+      ServerApp
+      TextToSpeechApi
   other-modules:
       Paths_hrasspy_backend
   hs-source-dirs:
