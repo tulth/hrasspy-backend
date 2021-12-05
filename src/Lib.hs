@@ -173,7 +173,11 @@ changeLightState :: Slot -> IO String
 changeLightState Slot {slotName=sName, slotState=sState} =
   case itemNameM of
     Nothing -> return $ "I did not understand switch " ++ sName
-    Just inom -> openhabHttpActionIO inom itemState
+    Just inom -> do
+      success <- openhabHttpActionIO inom itemState
+      if success
+        then return $ "setting " ++ sName ++ " to " ++ sState
+        else return $ "Error setting " ++ sName ++ " to " ++ sState
   where itemNameM = slotNameToItemName sName
         itemState = map toUpper sState
 
@@ -185,10 +189,10 @@ slotNameToItemName "curio cabinet" = Just "curio_cabinet_switch_dimmer"
 slotNameToItemName "cabinet" = Just "curio_cabinet_switch_dimmer"
 slotNameToItemName _ = Nothing
 
-openhabHttpActionIO :: String -> String -> IO String
+openhabHttpActionIO :: String -> String -> IO Bool
 openhabHttpActionIO itemName itemState = do
-  either (const "error")
-    (const $ "setting " ++ itemName ++ " to " ++ itemState)
+  either (const False)
+    (const True)
     <$> httpActionIOE
   where req = setRequestBodyLBS (BLC.pack itemState) $
           buildRequest "burpelson" "POST" ("rest/items/" ++ itemName) False 8080
