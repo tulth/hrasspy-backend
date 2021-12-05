@@ -1,57 +1,54 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module IntentJsonSpec ( test1
-                      , test2
+module IntentJsonSpec ( testGetTimeIO
+                      , testGetTemperatureIO
+                      , testChangeLightStateIO
                       ) where
 
-import Data.Map ( Map )
-import Data.Text
-import Data.Aeson
-import Data.Aeson.Types
+import Data.Map ()
+import Data.Text ()
+import Data.List.Extra ( replace )
 import qualified Data.ByteString.Lazy as BL
 
--- test0 :: IO (Maybe String)
--- test0 = do
---   getTime <- BL.readFile "/home/tulth/local/hrasspy-backend/test/intents/get-time.json"
---   let x = flip parseMaybe getTime $ (\obj -> obj .: "text")
---     -- fullText <- 
---     -- return fullText
---     -- let textKey = pack "text"
---     --     fullTextM :: Parser String
---     --     fullTextM = obj .: textKey
---   return x
+import Intent ( getIntent, Intent(..), Slot(..) )
+import Data.Aeson (Object, decode)
 
-test1 :: Maybe (Map String Int)
-test1 = decode "{\"foo\":1,\"bar\":2}"
+readIntentFileNoSlots :: String -> IO (Maybe Intent)
+readIntentFileNoSlots intentN = do
+   getTime <- BL.readFile fileName
+   let objM = decode getTime :: Maybe Object
+   return $ getIntent =<< objM
+   where fileName = "test/intents/" ++ intentN ++ ".json"
 
-test2 :: Maybe String
-test2 = do
-  result <- decode "{\"name\":\"Dave\",\"age\":2}"
-  flip parseMaybe result $ \obj -> do
-    let ageM :: Parser Integer
-        ageM = obj .: "age"
-    age <- ageM
-    name <- obj .: "name"
-    return (name ++ ": " ++ show (age*2))
+testIntentNoSlotsIO :: String -> IO Bool
+testIntentNoSlotsIO intentN = do
+  actual <- readIntentFileNoSlots intentN
+  return $ expect == actual
+  where expect = Just (Intent {intentName = intentN, slots = []})
+  
+testGetTimeIO :: IO Bool
+testGetTimeIO = testIntentNoSlotsIO "GetTime"
 
-getIntentName :: Object -> Maybe String
-getIntentName decodedJsonM = 
-  flip parseMaybe decodedJsonM $ \obj -> do
-    intent <- obj .: "intent"
-    intent .: "name"
+testGetTemperatureIO :: IO Bool
+testGetTemperatureIO = testIntentNoSlotsIO "GetTemperature"
+  
+readIntentFileWithOneSlot :: String -> String -> String -> IO (Maybe Intent)
+readIntentFileWithOneSlot intentN slotN slotS = do
+   getTime <- BL.readFile fileName
+   let objM = decode getTime :: Maybe Object
+   return $ getIntent =<< objM
+   where slotN' = replace " " "_" slotN
+         fileBaseName = intentN ++ "-" ++ slotN' ++ "-" ++ slotS
+         fileName = "test/intents/" ++ fileBaseName ++ ".json"
 
--- test3 :: BL.ByteString -> Maybe String
--- test3 content = getIntentName $ decode content
+testIntentWithOneSlotIO :: String -> String -> String -> IO Bool
+testIntentWithOneSlotIO intentN slotN slotS = do
+  actual <- readIntentFileWithOneSlot intentN slotN slotS
+  return $ expect == actual
+  where eSlot = Slot {slotName=slotN, slotState=slotS}
+        expect = Just (Intent {intentName = intentN,
+                               slots = [eSlot]})
 
-test3 :: BL.ByteString -> Maybe String
-test3 content = do
-  decodedJsonM <- decode content
-  getIntentName decodedJsonM
-  -- flip parseMaybe decodedJsonM $ \obj -> do
-  --   intent <- obj .: "intent"
-  --   intent .: "name"
-
-test4 :: IO (Maybe String)
-test4 = do
-   getTime <- BL.readFile "/home/tulth/local/hrasspy-backend/test/intents/get-time.json"
-   return $ test3 getTime
+testChangeLightStateIO :: IO Bool                            
+testChangeLightStateIO =
+  testIntentWithOneSlotIO "ChangeLightState" "corner lamp" "on"

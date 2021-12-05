@@ -49,11 +49,15 @@ import Control.Exception (Exception, try)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Except ( liftEither )
 import qualified Network.HTTP.Media as M
-import Data.Aeson ( object, ToJSON(..), (.=), (.:) )
-import Data.Aeson.Types (Object, parseMaybe)
+import Data.Aeson ( object, ToJSON(..), (.=), )
+import Data.Aeson.Types ( Object )
+
+import Intent ( getIntent, Intent(..) )
+import GetSpokenTime ( getSpokenTimeIO )
+import Data.Char ( isUpper )
 
 type API = "status" :> Get '[JSON] String
-      :<|> "api" :> "intent" :> ReqBody '[JSON] Intent :> Post '[JSON] ResponseToSpeak
+      :<|> "api" :> "intent" :> ReqBody '[JSON] IntentJsonObj :> Post '[JSON] ResponseToSpeak
       :<|> "api" :> "text-to-speech" :> ReqBody '[PlainText] TextToConvert :> Post '[Wav] WavData
 
 startApp :: IO ()
@@ -127,24 +131,28 @@ buildRequest host method path isSecure port =
   $ setRequestPort port
   defaultRequest
 
-type Intent = Object
+type IntentJsonObj = Object
 newtype ResponseToSpeak = ResponseToSpeak String
 
 instance ToJSON ResponseToSpeak where
   toJSON (ResponseToSpeak a) = object ["speech" .= object [ "text" .= toJSON a] ]
 
-intentApiHandler :: Intent -> Handler ResponseToSpeak
+intentApiHandler :: IntentJsonObj -> Handler ResponseToSpeak
 intentApiHandler jsonBody = do
-  let intentNameM = getIntentName jsonBody
-      response = case intentNameM of
-        Just "GetTime" -> "I don't have a watch"
-        Just intentName -> "I don't handle " ++ intentName
-        Nothing -> "I did not understand"
+  let intentM = getIntent jsonBody
+      intentNameM = intentName <$> intentM
+  response <- liftIO $
+    case intentNameM of
+      Just "GetTime" -> getSpokenTimeIO
+      Just inom -> return $ "I don't handle " ++ camelCaseToSpaced inom
+      Nothing -> return "I did not understand"
   return $ ResponseToSpeak response
 
-getIntentName :: Object -> Maybe String
-getIntentName decodedJsonM = 
-  flip parseMaybe decodedJsonM $ \obj -> do
-    intent <- obj .: "intent"
-    intent .: "name"
-
+camelCaseToSpaced :: String -> String
+camelCaseToSpaced "" = ""
+camelCaseToSpaced (a:as) =
+  if isUpper a
+  then reverse ( a : " ") ++ camelCaseToSpaced as
+  else a : camelCaseToSpaced as
+--spaceCamelCase :: String -> String
+--spaceCamelCase =  

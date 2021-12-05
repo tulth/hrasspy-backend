@@ -25,6 +25,8 @@ source-repository head
 
 library
   exposed-modules:
+      GetSpokenTime
+      Intent
       Lib
   other-modules:
       Paths_hrasspy_backend
@@ -35,11 +37,13 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , extra
     , http-conduit
     , http-media
     , mtl
     , servant-server
     , text
+    , time
     , transformers
     , wai-extra
     , wai-logger
@@ -58,12 +62,14 @@ executable hrasspy-backend-exe
     , base >=4.7 && <5
     , bytestring
     , containers
+    , extra
     , hrasspy-backend
     , http-conduit
     , http-media
     , mtl
     , servant-server
     , text
+    , time
     , transformers
     , wai-extra
     , wai-logger
@@ -74,6 +80,7 @@ test-suite hrasspy-backend-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      GetSpokenTimeSpec
       IntentJsonSpec
       Paths_hrasspy_backend
   hs-source-dirs:
@@ -84,12 +91,14 @@ test-suite hrasspy-backend-test
     , base >=4.7 && <5
     , bytestring
     , containers
+    , extra
     , hrasspy-backend
     , http-conduit
     , http-media
     , mtl
     , servant-server
     , text
+    , time
     , transformers
     , wai-extra
     , wai-logger
