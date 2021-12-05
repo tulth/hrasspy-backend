@@ -139,6 +139,8 @@ homeTheaterActivityToItemName x
 openhabHttpActionIO :: String -> String -> IO Bool
 openhabHttpActionIO itemName itemState = do
   print req
+  httpActionE <- httpActionIOE
+  print httpActionE
   either (const False)
     (const True)
     <$> httpActionIOE
