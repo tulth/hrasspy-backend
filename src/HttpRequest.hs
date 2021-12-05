@@ -32,13 +32,13 @@ buildRequest :: Bool          -- ^ use secure protocol, http vs https
              -> String        -- ^ method, like "POST" "GET"
              -> BL.ByteString -- ^ the request body
              -> Request       -- ^ the resulting request
-buildRequest isSecure host port method path body =
-  setRequestSecure isSecure
+buildRequest isSecure host port path method body =
+  setRequestBodyLBS body
+  $ setRequestMethod (BC.pack method)
   $ setRequestHost (BC.pack host)
   $ setRequestPath (BC.pack path)
-  $ setRequestMethod (BC.pack method)
+  $ setRequestSecure isSecure
   $ setRequestPort port
-  $ setRequestBodyLBS body
   defaultRequest
 
 buildHttpRequest
@@ -76,4 +76,3 @@ responseToBody response =
   where status = getResponseStatusCode response
         body = getResponseBody response
         errMsg = "request failed with bad status " ++ show status
-
