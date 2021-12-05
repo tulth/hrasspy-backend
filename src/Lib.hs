@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -52,9 +53,10 @@ import qualified Network.HTTP.Media as M
 import Data.Aeson ( object, ToJSON(..), (.=), )
 import Data.Aeson.Types ( Object )
 
-import Intent ( getIntent, Intent(..) )
+import Intent ( getIntent, Intent(..), Slot (..) )
 import GetSpokenTime ( getSpokenTimeIO )
-import Data.Char ( isUpper )
+import Data.Char ( isUpper, toUpper )
+import Data.Maybe (listToMaybe)
 
 type API = "status" :> Get '[JSON] String
       :<|> "api" :> "intent" :> ReqBody '[JSON] IntentJsonObj :> Post '[JSON] ResponseToSpeak
@@ -141,9 +143,11 @@ intentApiHandler :: IntentJsonObj -> Handler ResponseToSpeak
 intentApiHandler jsonBody = do
   let intentM = getIntent jsonBody
       intentNameM = intentName <$> intentM
+      slotM = getSingleSlot intentM
   response <- liftIO $
     case intentNameM of
       Just "GetTime" -> ("The time is " ++) <$> getSpokenTimeIO
+      Just "ChangeLightState" -> changeLightStateM slotM
       Just inom -> return $ "I don't handle " ++ camelCaseToSpaced inom
       Nothing -> return "I did not understand"
   return $ ResponseToSpeak response
@@ -154,5 +158,38 @@ camelCaseToSpaced (a:as) =
   if isUpper a
   then reverse ( a : " ") ++ camelCaseToSpaced as
   else a : camelCaseToSpaced as
---spaceCamelCase :: String -> String
---spaceCamelCase =  
+
+getSingleSlot :: Maybe Intent -> Maybe Slot
+getSingleSlot argIntentM = do
+  argIntent <- argIntentM
+  listToMaybe $ slots argIntent
+
+changeLightStateM :: Maybe Slot -> IO String
+changeLightStateM argSlotM = case argSlotM of
+  Nothing -> return "missing slot"
+  Just a -> changeLightState a
+
+changeLightState :: Slot -> IO String
+changeLightState Slot {slotName=sName, slotState=sState} =
+  case itemNameM of
+    Nothing -> return $ "I did not understand switch " ++ sName
+    Just inom -> openhabHttpActionIO inom itemState
+  where itemNameM = slotNameToItemName sName
+        itemState = map toUpper sState
+
+slotNameToItemName :: String -> Maybe String
+slotNameToItemName "corner lamp" = Just "corner_lamp"
+slotNameToItemName "den lamp" = Just "corner_lamp"
+slotNameToItemName "den" = Just "corner_lamp"
+slotNameToItemName "curio cabinet" = Just "curio_cabinet_switch_dimmer"
+slotNameToItemName "cabinet" = Just "curio_cabinet_switch_dimmer"
+slotNameToItemName _ = Nothing
+
+openhabHttpActionIO :: String -> String -> IO String
+openhabHttpActionIO itemName itemState = do
+  either (const "error")
+    (const $ "setting " ++ itemName ++ " to " ++ itemState)
+    <$> httpActionIOE
+  where req = setRequestBodyLBS (BLC.pack itemState) $
+          buildRequest "burpelson" "POST" ("rest/items/" ++ itemName) False 8080
+        httpActionIOE = doHttpRequestBody req
