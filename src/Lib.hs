@@ -143,7 +143,7 @@ intentApiHandler jsonBody = do
       intentNameM = intentName <$> intentM
   response <- liftIO $
     case intentNameM of
-      Just "GetTime" -> getSpokenTimeIO
+      Just "GetTime" -> ("The time is " ++) <$> getSpokenTimeIO
       Just inom -> return $ "I don't handle " ++ camelCaseToSpaced inom
       Nothing -> return "I did not understand"
   return $ ResponseToSpeak response

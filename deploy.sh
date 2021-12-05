@@ -2,6 +2,7 @@
 set -e
 
 stack build
+stack test
 stack install
 sudo mv ../../.local/bin/hrasspy-backend-exe ../../../../opt/rhasspy/hrasspy-backend-exe
 sudo systemctl restart hrasspy-backend.service
