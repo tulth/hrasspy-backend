@@ -37,7 +37,7 @@ instance ToJSON ResponseToSpeak where
 
 intentApiHandler :: Intent -> Handler ResponseToSpeak
 intentApiHandler argIntent = do
-  liftIO $ print $ argIntent
+  liftIO $ print argIntent
   case argIntentName of
     "GetTime" -> doGetTime argIntent
     "ChangeLightState" -> changeLightState argIntent
@@ -45,7 +45,7 @@ intentApiHandler argIntent = do
     _ -> unhandled
   where argIntentName = intentName argIntent
         unhandled = liftIO $ return $ ResponseToSpeak $
-          "I don't handle " ++ camelCaseToSpaced argIntentName
+          "I don't handle " ++ getSpokenName argIntentName
 
 doGetTime :: Intent -> Handler ResponseToSpeak
 doGetTime = do
@@ -63,8 +63,8 @@ changeLightState argIntent =
         sNameM = "name" `Map.lookup` argSlots
         sStateM = "state" `Map.lookup` argSlots
         err = liftIO $ return $ ResponseToSpeak $
-                "Error handling " ++ camelCaseToSpaced argIntentName
-          
+                "Error handling " ++ getSpokenName argIntentName
+
 changeLightState' :: String -> String -> IO String
 changeLightState' sName sState =
   case itemNameM of
@@ -98,13 +98,13 @@ changeHomeTheaterState :: Intent -> Handler ResponseToSpeak
 changeHomeTheaterState argIntent =
   case sNameM of
     Just sName -> liftIO $ ResponseToSpeak <$>
-      changeHomeTheaterState' sName 
+      changeHomeTheaterState' sName
     _ -> err
   where argIntentName = intentName argIntent
         argSlots = slots argIntent
         sNameM = "name" `Map.lookup` argSlots
         err = liftIO $ return $ ResponseToSpeak $
-                "Error handling " ++ camelCaseToSpaced argIntentName
+                "Error handling " ++ getSpokenName argIntentName
 
 changeHomeTheaterState' :: String -> IO String
 changeHomeTheaterState' argName =
@@ -113,13 +113,15 @@ changeHomeTheaterState' argName =
     Just inom -> do
       success <- openhabHttpActionIO inom "ON"
       if success
-        then return $ unwords ["doing activity", getSpokenName inom]
-        else return $ unwords ["Error setting", getSpokenName inom]
+        then return $ unwords ["doing activity", getSpokenName' inom]
+        else return $ unwords ["Error setting", getSpokenName' inom]
   where itemNameM = homeTheaterActivityToItemName argName
-        getSpokenName :: String -> String
-        getSpokenName = replace "tv_" ""
+        getSpokenName' = getSpokenName . replace "tv_" ""
 
-homeTheaterActivityToItemName :: String -> Maybe String  
+getSpokenName :: String -> String
+getSpokenName = replace "_" " " . camelCaseToSpaced
+
+homeTheaterActivityToItemName :: String -> Maybe String
 homeTheaterActivityToItemName x
   | x `elem` ["off", "shutdown", "shut down"]                                  = Just "tv_shutdown"
   | x `elem` ["bed time", "bedtime", "timer", "time"]                          = Just "tv_bedtime"
@@ -153,4 +155,3 @@ camelCaseToSpaced (a:as) =
   if isUpper a
   then reverse ( a : " ") ++ camelCaseToSpaced as
   else a : camelCaseToSpaced as
-
