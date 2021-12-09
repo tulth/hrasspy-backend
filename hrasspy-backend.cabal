@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       GetSpokenTime
+      GetWeather
       HttpRequest
       Intent
       IntentHandlerApi

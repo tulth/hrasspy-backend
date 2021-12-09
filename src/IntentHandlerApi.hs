@@ -17,20 +17,23 @@ import Servant
     , Post
     , ReqBody
     )
-import HttpRequest ( buildHttpRequest, doHttpRequestBody )
-import Data.Aeson ( object, ToJSON(..), (.=), )
 
-import Intent ( Intent(..) )
-import GetSpokenTime ( getSpokenTimeIO )
+import Data.Aeson ( object, ToJSON(..), (.=), )
 import Data.Char ( isUpper, toUpper )
 import Data.List.Extra ( replace )
 import qualified Data.Map as Map
+
+import Intent ( Intent(..) )
+import HttpRequest ( buildHttpRequest, doHttpRequestBody )
+import GetSpokenTime ( getSpokenTimeIO )
+import GetWeather ( getWeather
+                  , WeatherRecord(..) )
 
 type IntentApi = "api" :> "intent"
   :> ReqBody '[JSON] Intent
   :> Post '[JSON] ResponseToSpeak
 
-newtype ResponseToSpeak = ResponseToSpeak String
+newtype ResponseToSpeak = ResponseToSpeak String deriving ( Show )
 
 instance ToJSON ResponseToSpeak where
   toJSON (ResponseToSpeak a) = object ["speech" .= object [ "text" .= toJSON a] ]
@@ -40,6 +43,7 @@ intentApiHandler argIntent = do
   liftIO $ print argIntent
   case argIntentName of
     "GetTime" -> doGetTime argIntent
+    "GetTemperature" -> doGetTemperature argIntent
     "ChangeLightState" -> changeLightState argIntent
     "ChangeHomeTheaterState" -> changeHomeTheaterState argIntent
     _ -> unhandled
@@ -155,3 +159,19 @@ camelCaseToSpaced (a:as) =
   if isUpper a
   then reverse ( a : " ") ++ camelCaseToSpaced as
   else a : camelCaseToSpaced as
+
+doGetTemperature :: Intent -> Handler ResponseToSpeak
+doGetTemperature _ =
+  liftIO resp
+  where resp = ResponseToSpeak . doGetTemperature' <$> getWeather
+
+doGetTemperature' :: Either String WeatherRecord -> String
+doGetTemperature' arg =
+  case arg of
+    Right w -> goodReply w
+    Left _ -> "Error getting temperature"
+  where goodReply :: WeatherRecord -> String
+        goodReply argW = unwords [
+          "The temperature is",
+          show(round(weatherCurrentlyTemperature argW) :: Integer),
+          "degrees"]
