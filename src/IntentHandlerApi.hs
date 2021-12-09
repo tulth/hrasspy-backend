@@ -43,7 +43,7 @@ intentApiHandler argIntent = do
   liftIO $ print argIntent
   case argIntentName of
     "GetTime" -> doGetTime argIntent
-    "GetTemperature" -> doGetTemperature argIntent
+    "GetTemperature" -> doGetWeather argIntent
     "ChangeLightState" -> changeLightState argIntent
     "ChangeHomeTheaterState" -> changeHomeTheaterState argIntent
     _ -> unhandled
@@ -160,18 +160,19 @@ camelCaseToSpaced (a:as) =
   then reverse ( a : " ") ++ camelCaseToSpaced as
   else a : camelCaseToSpaced as
 
-doGetTemperature :: Intent -> Handler ResponseToSpeak
-doGetTemperature _ =
+doGetWeather :: Intent -> Handler ResponseToSpeak
+doGetWeather _ =
   liftIO resp
-  where resp = ResponseToSpeak . doGetTemperature' <$> getWeather
+  where resp = ResponseToSpeak . doGetWeather' <$> getWeather
 
-doGetTemperature' :: Either String WeatherRecord -> String
-doGetTemperature' arg =
+doGetWeather' :: Either String WeatherRecord -> String
+doGetWeather' arg =
   case arg of
     Right w -> goodReply w
     Left _ -> "Error getting temperature"
   where goodReply :: WeatherRecord -> String
         goodReply argW = unwords [
-          "The temperature is",
-          show(round(weatherCurrentlyTemperature argW) :: Integer),
-          "degrees"]
+          "The current weather is"
+          , show(round(weatherCurrentlyTemperature argW) :: Integer)
+          , "degrees and"
+          , weatherCurrentlySummary argW]
