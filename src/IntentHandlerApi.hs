@@ -82,12 +82,14 @@ changeLightState' sName sState =
         itemState = lightStateToItemState $ map toUpper sState
 
 lightNameToItemName :: String -> Maybe String
-lightNameToItemName "corner lamp"   = Just "corner_lamp"
-lightNameToItemName "den lamp"      = Just "corner_lamp"
-lightNameToItemName "den"           = Just "corner_lamp"
-lightNameToItemName "curio cabinet" = Just "curio_cabinet_switch_dimmer"
-lightNameToItemName "cabinet"       = Just "curio_cabinet_switch_dimmer"
-lightNameToItemName _               = Nothing
+lightNameToItemName "corner lamp"         = Just "corner_lamp"
+lightNameToItemName "den lamp"            = Just "corner_lamp"
+lightNameToItemName "den"                 = Just "corner_lamp"
+lightNameToItemName "curio cabinet"       = Just "curio_cabinet_switch_dimmer"
+lightNameToItemName "cabinet"             = Just "curio_cabinet_switch_dimmer"
+lightNameToItemName "master bedroom lamp" = Just "master_bedroom_lamp"
+lightNameToItemName "bedroom lamp"        = Just "master_bedroom_lamp"
+lightNameToItemName _                     = Nothing
 
 lightStateToItemState :: String -> String
 lightStateToItemState "0"          = "OFF"
