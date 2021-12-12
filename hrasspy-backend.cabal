@@ -60,7 +60,7 @@ executable hrasspy-backend-exe
       Paths_hrasspy_backend
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wcpp-undef -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wcpp-undef -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Werror
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -89,7 +89,7 @@ test-suite hrasspy-backend-test
       Paths_hrasspy_backend
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wcpp-undef -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wcpp-undef -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Werror
   build-depends:
       aeson
     , base >=4.7 && <5

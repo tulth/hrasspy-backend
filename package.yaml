@@ -57,6 +57,7 @@ executables:
     - -Wmissing-home-modules
     - -Wpartial-fields
     - -Wredundant-constraints
+    - -Werror
     dependencies:
     - hrasspy-backend
 
@@ -78,5 +79,6 @@ tests:
     - -Wmissing-home-modules
     - -Wpartial-fields
     - -Wredundant-constraints
+    - -Werror
     dependencies:
     - hrasspy-backend

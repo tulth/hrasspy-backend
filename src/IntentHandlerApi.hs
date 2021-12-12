@@ -2,7 +2,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
 module IntentHandlerApi ( IntentApi
                         , intentApiHandler
@@ -20,7 +19,7 @@ import Servant
 
 import Data.Aeson ( object, ToJSON(..), (.=), )
 import Data.Char ( isUpper, toUpper )
-import Data.List.Extra ( replace )
+import Data.List.Extra ( replace, lower )
 import qualified Data.Map as Map
 
 import Intent ( Intent(..) )
@@ -28,6 +27,7 @@ import HttpRequest ( buildHttpRequest, doHttpRequestBody )
 import GetSpokenTime ( getSpokenTimeIO )
 import GetWeather ( getWeather
                   , WeatherRecord(..) )
+import Network.HTTP.Simple ( Request )
 
 type IntentApi = "api" :> "intent"
   :> ReqBody '[JSON] Intent
@@ -46,6 +46,7 @@ intentApiHandler argIntent = do
     "GetTemperature" -> doGetWeather argIntent
     "ChangeLightState" -> changeLightState argIntent
     "ChangeHomeTheaterState" -> changeHomeTheaterState argIntent
+    "ChangeHomeTheaterVolume" -> changeHomeTheaterVolume argIntent
     _ -> unhandled
   where argIntentName = intentName argIntent
         unhandled = liftIO $ return $ ResponseToSpeak $
@@ -145,15 +146,25 @@ homeTheaterActivityToItemName x
 -- FIXME?  | x == "test"                                       = Nothing
 
 openhabHttpActionIO :: String -> String -> IO Bool
-openhabHttpActionIO itemName itemState = do
+openhabHttpActionIO  =
+  openhabHttpRequestIO `blackbird` openhabItemPostRequest
+
+blackbird :: (b -> c) -> (a1 -> a2 -> b) -> a1 -> a2 -> c
+blackbird = (.) . (.)
+
+openhabHttpRequestIO :: Request -> IO Bool
+openhabHttpRequestIO req = do
   print req
   httpActionE <- httpActionIOE
   print httpActionE
   either (const False)
     (const True)
     <$> httpActionIOE
-  where req = buildHttpRequest "burpelson" 8080 ("rest/items/" ++ itemName)  "POST" (BLC.pack itemState)
-        httpActionIOE = doHttpRequestBody req
+  where httpActionIOE = doHttpRequestBody req
+
+openhabItemPostRequest :: String -> String -> Request
+openhabItemPostRequest itemName itemState =
+  buildHttpRequest "burpelson" 8080 ("rest/items/" ++ itemName)  "POST" (BLC.pack itemState)
 
 camelCaseToSpaced :: String -> String
 camelCaseToSpaced "" = ""
@@ -178,3 +189,60 @@ doGetWeather' arg =
           , show(round(weatherCurrentlyTemperature argW) :: Integer)
           , "degrees and"
           , weatherCurrentlySummary argW]
+
+
+changeHomeTheaterVolume :: Intent -> Handler ResponseToSpeak
+changeHomeTheaterVolume argIntent =
+  case sStateM of
+    Just sState -> liftIO $ ResponseToSpeak <$>
+      changeHomeTheaterVolume' sState
+    _ -> err
+  where argIntentName = intentName argIntent
+        argSlots = slots argIntent
+        sStateM = "state" `Map.lookup` argSlots
+        err = liftIO $ return $ ResponseToSpeak $
+                "Error handling " ++ getSpokenName argIntentName
+
+changeHomeTheaterVolume' :: String -> IO String
+changeHomeTheaterVolume' argVolume =
+  case requestVolumeM of
+    Nothing -> return $ "I did not understand volume " ++ argVolume
+    Just req -> do
+      success <- openhabHttpRequestIO req
+      if success
+        then return $ unwords ["setting volume", argVolume]
+        else return $ unwords ["Error setting volume", argVolume]
+  where argVolumeLower = lower argVolume
+        requestVolumeM = volumeStateToRequests argVolumeLower
+
+volumeStateToRequests :: String -> Maybe Request
+volumeStateToRequests = fmap volumeUpdateToRequests . volumeStateToVolumeUpdate
+
+data VolumeUpdate = VolumeMute
+                  | VolumeUnmute
+                  | VolumeAbsolute Int
+                  | VolumeIncrease
+                  | VolumeDecrease
+    deriving ( Show )
+
+volumeUpdateToRequests :: VolumeUpdate -> Request
+volumeUpdateToRequests (VolumeAbsolute n) = openhabItemPostRequest "yamaha_volume" (show n)
+volumeUpdateToRequests VolumeIncrease     = openhabItemPostRequest "yamaha_volume" "INCREASE"
+volumeUpdateToRequests VolumeDecrease     = openhabItemPostRequest "yamaha_volume" "DECREASE"
+volumeUpdateToRequests VolumeMute         = openhabItemPostRequest "yamaha_mute" "ON"
+volumeUpdateToRequests VolumeUnmute       = openhabItemPostRequest "yamaha_mute" "OFF"
+
+volumeStateToVolumeUpdate :: String -> Maybe VolumeUpdate
+volumeStateToVolumeUpdate "high"    = Just (VolumeAbsolute 65)
+volumeStateToVolumeUpdate "medium"  = Just (VolumeAbsolute 56)
+volumeStateToVolumeUpdate "low"     = Just (VolumeAbsolute 47)
+volumeStateToVolumeUpdate "up"      = Just VolumeIncrease
+volumeStateToVolumeUpdate "raise"   = Just VolumeIncrease
+volumeStateToVolumeUpdate "louder"  = Just VolumeIncrease
+volumeStateToVolumeUpdate "quieter" = Just VolumeDecrease
+volumeStateToVolumeUpdate "down"    = Just VolumeDecrease
+volumeStateToVolumeUpdate "lower"   = Just VolumeDecrease
+volumeStateToVolumeUpdate "mute"    = Just VolumeMute
+volumeStateToVolumeUpdate "unmute"  = Just VolumeUnmute
+volumeStateToVolumeUpdate _         = Nothing
+
