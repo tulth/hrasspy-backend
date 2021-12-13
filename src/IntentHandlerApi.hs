@@ -205,17 +205,17 @@ changeHomeTheaterVolume argIntent =
 
 changeHomeTheaterVolume' :: String -> IO String
 changeHomeTheaterVolume' argVolume =
-  case requestVolumeM of
+  case requestsM of
     Nothing -> return $ "I did not understand volume " ++ argVolume
-    Just req -> do
-      success <- openhabHttpRequestIO req
+    Just reqs -> do
+      success <- and <$> sequence (openhabHttpRequestIO <$> reqs)
       if success
         then return $ unwords ["setting volume", argVolume]
         else return $ unwords ["Error setting volume", argVolume]
   where argVolumeLower = lower argVolume
-        requestVolumeM = volumeStateToRequests argVolumeLower
+        requestsM = volumeStateToRequests argVolumeLower
 
-volumeStateToRequests :: String -> Maybe Request
+volumeStateToRequests :: String -> Maybe [Request]
 volumeStateToRequests = fmap volumeUpdateToRequests . volumeStateToVolumeUpdate
 
 data VolumeUpdate = VolumeMute
@@ -225,12 +225,16 @@ data VolumeUpdate = VolumeMute
                   | VolumeDecrease
     deriving ( Show )
 
-volumeUpdateToRequests :: VolumeUpdate -> Request
-volumeUpdateToRequests (VolumeAbsolute n) = openhabItemPostRequest "yamaha_volume" (show n)
-volumeUpdateToRequests VolumeIncrease     = openhabItemPostRequest "yamaha_volume" "INCREASE"
-volumeUpdateToRequests VolumeDecrease     = openhabItemPostRequest "yamaha_volume" "DECREASE"
-volumeUpdateToRequests VolumeMute         = openhabItemPostRequest "yamaha_mute" "ON"
-volumeUpdateToRequests VolumeUnmute       = openhabItemPostRequest "yamaha_mute" "OFF"
+volumeUpdateToRequests :: VolumeUpdate -> [Request]
+volumeUpdateToRequests (VolumeAbsolute n) = [ openhabItemPostRequest "yamaha_volume" (show n)]
+volumeUpdateToRequests VolumeIncrease     = [ openhabItemPostRequest "yamaha_volume" "INCREASE"
+                                            -- , openhabItemPostRequest "yamaha_volume" "INCREASE"
+                                            ]
+volumeUpdateToRequests VolumeDecrease     = [ openhabItemPostRequest "yamaha_volume" "DECREASE"
+                                            , openhabItemPostRequest "yamaha_volume" "DECREASE"
+                                            ]
+volumeUpdateToRequests VolumeMute         = [ openhabItemPostRequest "yamaha_mute" "ON"]
+volumeUpdateToRequests VolumeUnmute       = [ openhabItemPostRequest "yamaha_mute" "OFF"]
 
 volumeStateToVolumeUpdate :: String -> Maybe VolumeUpdate
 volumeStateToVolumeUpdate "high"    = Just (VolumeAbsolute 65)
