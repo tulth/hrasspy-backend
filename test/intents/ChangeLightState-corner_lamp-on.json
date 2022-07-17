@@ -42,7 +42,7 @@
     ],
     "recognize_seconds": 0.09816334000788629,
     "slots": {
-        "name": "living room lamp",
+        "name": "corner lamp",
         "state": "on"
     },
     "speech_confidence": 1,

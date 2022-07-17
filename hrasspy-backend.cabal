@@ -25,7 +25,13 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      GetSpokenTime
+      GetWeather
+      HttpRequest
+      Intent
+      IntentHandlerApi
+      ServerApp
+      TextToSpeechApi
   other-modules:
       Paths_hrasspy_backend
   hs-source-dirs:
@@ -34,10 +40,14 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
+    , containers
+    , extra
     , http-conduit
     , http-media
     , mtl
     , servant-server
+    , text
+    , time
     , transformers
     , wai-extra
     , wai-logger
@@ -50,16 +60,20 @@ executable hrasspy-backend-exe
       Paths_hrasspy_backend
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wcpp-undef -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Werror
   build-depends:
       aeson
     , base >=4.7 && <5
     , bytestring
+    , containers
+    , extra
     , hrasspy-backend
     , http-conduit
     , http-media
     , mtl
     , servant-server
+    , text
+    , time
     , transformers
     , wai-extra
     , wai-logger
@@ -70,19 +84,25 @@ test-suite hrasspy-backend-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      GetSpokenTimeSpec
+      IntentJsonSpec
       Paths_hrasspy_backend
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wcpp-undef -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Werror
   build-depends:
       aeson
     , base >=4.7 && <5
     , bytestring
+    , containers
+    , extra
     , hrasspy-backend
     , http-conduit
     , http-media
     , mtl
     , servant-server
+    , text
+    , time
     , transformers
     , wai-extra
     , wai-logger

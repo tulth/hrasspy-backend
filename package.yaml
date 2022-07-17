@@ -31,6 +31,10 @@ dependencies:
 - http-conduit
 - http-media
 - aeson
+- containers
+- text
+- extra
+- time
 
 library:
   source-dirs: src
@@ -43,6 +47,17 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wcompat
+    - -Wcpp-undef
+    - -Widentities
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wmissing-export-lists
+    - -Wmissing-home-modules
+    - -Wpartial-fields
+    - -Wredundant-constraints
+    - -Werror
     dependencies:
     - hrasspy-backend
 
@@ -54,5 +69,16 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wcompat
+    - -Wcpp-undef
+    - -Widentities
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wmissing-export-lists
+    - -Wmissing-home-modules
+    - -Wpartial-fields
+    - -Wredundant-constraints
+    - -Werror
     dependencies:
     - hrasspy-backend
