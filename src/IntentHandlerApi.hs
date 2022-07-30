@@ -133,6 +133,7 @@ homeTheaterActivityToItemName x
   | x `elem` ["off", "shutdown", "shut down"]                                  = Just "tv_shutdown"
   | x `elem` ["bed time", "bedtime", "timer", "time"]                          = Just "tv_bedtime"
   | x `elem` ["youtube", "you tube", "you too", "u2"]                          = Just "tv_youtube"
+  | x `elem` ["curiosity stream", "curiosity steam"]                           = Just "tv_curiositystream"
   | x `elem` ["amazon prime", "prime"]                                         = Just "tv_amazon_prime"
   | x == "twitch"                                                              = Just "tv_twitch"
   | x `elem` ["my movies", "jellyfin", "jelly fin", "jellyfish", "jelly fish"] = Just "tv_jellyfin"
